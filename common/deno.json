@@ -1,0 +1,4 @@
+{
+  "name": "@scope/common",
+  "exports": "./types.ts"
+}

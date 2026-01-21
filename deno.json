@@ -1,0 +1,10 @@
+{
+  "workspaces": [
+    "./server",
+    "./common"
+  ],
+  "tasks": {
+    "dev:server": "deno task --cwd server dev",
+    "dev:client": "cd client && npm run dev"
+  }
+}

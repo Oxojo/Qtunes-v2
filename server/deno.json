@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "hono": "https://deno.land/x/hono@v3.11.7/mod.ts",
+    "@scope/common": "../common/types.ts"
+  },
+  "tasks": {
+    "dev": "deno run --allow-net --allow-env --env-file --watch main.ts"
+  }
+}

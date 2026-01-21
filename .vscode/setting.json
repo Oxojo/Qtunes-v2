@@ -1,0 +1,7 @@
+{
+  "deno.enable": true,
+  "deno.enablePaths": ["server", "common"],
+  "deno.lint": true,
+  "deno.unstable": true,
+  "deno.disablePaths": ["client"]
+}
