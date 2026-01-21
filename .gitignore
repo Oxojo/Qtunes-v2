@@ -1,0 +1,28 @@
+# --- OS & IDE ---
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+# .vscode/ はチームで設定を共有したい場合は除外しないこともありますが、
+# 個人設定が含まれる場合は含めるのが一般的です。
+
+# --- Environment Variables (最重要) ---
+.env
+.env.*
+!.env.example
+
+# --- Node.js / Vue (frontend) ---
+client/node_modules/
+client/dist/
+client/npm-debug.log*
+
+# --- Deno (backend) ---
+# Denoは通常 node_modules を作りませんが、キャッシュをプロジェクト内に
+# 配置するように設定している場合は以下を有効にします。
+.deno/
+# ログファイルなど
+server/deno-debug.log*
+
+# --- Build Outputs ---
+dist/
+build/
