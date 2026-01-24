@@ -3,6 +3,12 @@ import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
+  <div style="text-align: center; margin-top: 50px;">
+    <h1>traQ Login Test</h1>
+    <a href="http://localhost:8000/api/auth/login" class="login-button">
+      traQ でログインする
+    </a>
+  </div>
   <div>
     <a href="https://vite.dev" target="_blank">
       <img src="/vite.svg" class="logo" alt="Vite logo" />
