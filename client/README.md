@@ -1,5 +1,27 @@
-# Vue 3 + TypeScript + Vite
+# Qtunes-v2
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+## Tech Stack
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+- Frontend : Vue.js (Vite, TypeScript, Pinia)
+- Backend : Deno (Hono)
+
+## Setup
+
+- You should put `.env` in `./server`.
+
+```sh
+TRAQ_CLIENT_ID=XXXX
+TRAQ_REDIRECT_URL="http://localhost:8000/api/auth/callback"
+TRAQ_CHANNEL_ID=XXXX
+```
+
+- commands : 
+
+```sh
+# server
+Deno task dev:server
+
+# client
+Deno task def:client
+
+```
