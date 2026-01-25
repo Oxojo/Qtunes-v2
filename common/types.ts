@@ -3,4 +3,5 @@ export interface Song {
   name: string;
   mime: string;
   createdAt: string;
+  uploaderId: string;
 }

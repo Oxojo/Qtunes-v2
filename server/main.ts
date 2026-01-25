@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/middleware.ts"
 import { getCookie, setCookie } from "hono/helper/cookie/index.ts";
+import { Song } from "@scope/common"
 
 const app = new Hono();
 
@@ -70,6 +71,63 @@ app.get("api/me", async (c) => {
   } catch {
     return c.json(null);
   }
+});
+
+app.get("/api/songs", async (c) => {
+  const token = getCookie(c, "traq_token")
+  const channelId = Deno.env.get("TRAQ_CHANNEL_ID");
+
+  if (!token) return c.json({ error: "Unauthorized" }, 401);
+  if (!channelId) return c.json({ error: "Channel ID not configured" }, 500);
+  
+  try {
+    const res = await fetch(
+      `https://q.trap.jp/api/v3/files?channelId=${channelId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    if (!res.ok) throw new Error("traQ API Error");
+
+    const allFiles = await res.json();
+
+    const songs: Song[] = allFiles
+      .filter((file: any) => file.mime.startsWith("audio/"))
+      .map((file: any) => ({
+        id: file.id,
+        name: file.name,
+        mime: file.mime,
+        createdAt: file.createdAt,
+        uploaderId: file.uploaderId,
+      }));
+    return c.json(songs);
+  } catch (err) {
+    console.error(err);
+    return c.json({ error: "Failed to fetch songs" }, 500);
+  }
+});
+
+app.get("/api/stream/:fileId", async (c) => {
+  const fileId = c.req.param("fileId");
+  const token = getCookie(c, "traq_token");
+
+  if (!token) return c.text("Unauthorized", 401);
+
+  const res = await fetch(`https://q.trap.jp/api/v3/files/${fileId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) return c.text("Failed to fetch file", res.status);
+
+  const contentType = res.headers.get("Content-type") || "audio/mpeg";
+
+  return c.body(res.body, {
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=3600",
+    },
+  });
 });
 
 Deno.serve(app.fetch);
