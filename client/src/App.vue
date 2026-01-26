@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { Song } from '@scope/common'
 
 const user = ref(null)
@@ -20,8 +20,11 @@ const currentSong = ref<Song | null>(null)
 const audioRef = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 
-const playSong = (song: Song) => {
+const playSong = async (song: Song) => {
   currentSong.value = song
+
+  await nextTick();
+
   isPlaying.value = true
 
   if (audioRef.value) {
