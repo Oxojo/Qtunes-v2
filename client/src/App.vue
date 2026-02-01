@@ -65,7 +65,7 @@ onMounted(async () => {
   <div v-else class="songs-container">
     <div v-for="song in songs" :key="song.id" class="song-item">
       <div class="details">
-        <div class="name">{{ song.name }}</div>
+        <div class="name">{{ song.name.replace(/\.[^/.]+$/, "") }}</div>
         <div class="meta">
           {{ new Date(song.createdAt).toLocaleDateString() }}
           / ID: {{ song.uploaderId.substring(0, 8) }}

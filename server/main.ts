@@ -82,7 +82,7 @@ app.get("/api/songs", async (c) => {
   
   try {
     const res = await fetch(
-      `https://q.trap.jp/api/v3/files?channelId=${channelId}`,
+      `https://q.trap.jp/api/v3/files?channelId=${channelId}&limit=4`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
