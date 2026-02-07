@@ -1,15 +1,36 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
+import { usePlayerStore } from '../stores/players'
 import { Song } from '@scope/common'
+import SongCard from '../components/SongCard.vue';
 
 const user = ref(null)
 const songs = ref<Song[]>([])
+
+const userCache = ref<Record<string, string>>({})
+const playerStore = usePlayerStore()
+
+const resolveTraqId = async (uuid: string) => {
+  if (userCache.value[uuid]) return;
+
+  try {
+    const res = await fetch(`/api/users/${uuid}`);
+    if (res.ok) {
+      const data = await res.json();
+      userCache.value[uuid] = data.name;
+    }
+  } catch (e) {
+    console.error("User fetch error:", e);
+    userCache.value[uuid] = "unknown";
+  }
+}
 
 const fetchSongs = async () => {
   try {
     const res = await fetch('/api/songs', { credentials: 'include' })
     if (res.ok) {
       songs.value = await res.json()
+      songs.value.forEach(song => resolveTraqId(song.uploaderId));
     }
   } catch (e) {
     console.error("Failed on Songs", e)
@@ -43,6 +64,16 @@ const togglePlay = () => {
   isPlaying.value = !isPlaying.value
 }
 
+const handlePlay = (song: any) => {
+  if (playerStore.currentSongId === song.id && playerStore.isPlaying) {
+    // 同じ曲なら一時停止
+    playerStore.pause();
+  } else {
+    // 別の曲、または停止中なら再生
+    playSong(song); // 前に実装した再生関数
+  }
+}
+
 onMounted(async () => {
   try {
     const res = await fetch('api/me')
@@ -63,18 +94,8 @@ onMounted(async () => {
     </a>
   </div>
   <div v-else class="songs-container">
-    <div v-for="song in songs" :key="song.id" class="song-item">
-      <div class="details">
-        <div class="name">{{ song.name.replace(/\.[^/.]+$/, "") }}</div>
-        <div class="meta">
-          {{ new Date(song.createdAt).toLocaleDateString() }}
-          / ID: {{ song.uploaderId.substring(0, 8) }}
-        </div>
-      </div>
-      <button @click="playSong(song)">
-        {{ currentSong?.id === song.id && isPlaying ? '⏸' : '▶' }}
-      </button>
-    </div>
+    <SongCard v-for="song in songs" :title="song.name" :composer="userCache[song.uploaderId] || song.uploaderId.substring(0, 8)" :image_url="`/api/users/${song.uploaderId}/icon`" :is-playing="playerStore.isPlaying" @play="handlePlay(song)"/> 
+    <p></p>
     <div v-if="currentSong" class="player-bar">
       <div class="player-info">
         <span class="now-playing">再生中: {{ currentSong.name.replace(/\.[^/.]+$/, "") }}</span>

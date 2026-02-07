@@ -130,4 +130,38 @@ app.get("/api/stream/:fileId", async (c) => {
   });
 });
 
+app.get("/api/users/:userId", async (c) => {
+  const userId = c.req.param("userId");
+  const token = getCookie(c, "traq_token");
+
+  const res = await fetch(`https://q.trap.jp/api/v3/users/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) return c.json({ error: "User not found" }, res.status);
+
+  const data = await res.json();
+  return c.json({ name: data.name });
+});
+
+app.get("/api/users/:userId/icon", async (c) => {
+  const userId = c.req.param("userId");
+  const token = getCookie(c, "traq_token");
+
+  if (!token) return c.text("Unauthorized", 401);
+
+  const res = await fetch(`https://q.trap.jp/api/v3/users/${userId}/icon`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) return c.text("Icon not found", res.status);
+
+  return c.body(res.body, {
+    headers: {
+      "Content-Type": res.headers.get("Content-Type") || "image/png",
+      "Cache-Control": "public, max-age=86400",
+    },
+  });
+});
+
 Deno.serve(app.fetch);
