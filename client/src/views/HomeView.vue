@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
-import { usePlayerStore } from '../stores/players'
+import { ref, onMounted, nextTick, watch } from 'vue';
+import { usePlayerStore } from '../stores/player'
 import { Song } from '@scope/common'
 import SongCard from '../components/SongCard.vue';
 
@@ -42,42 +42,30 @@ const fetchSongs = async () => {
   }
 }
 
-const currentSong = ref<Song | null>(null)
-const audioRef = ref<HTMLAudioElement | null>(null)
-const isPlaying = ref(false)
-
-const playSong = async (song: Song) => {
-  currentSong.value = song
-
-  await nextTick();
-
-  isPlaying.value = true
-
-  if (audioRef.value) {
-    audioRef.value.src = `/api/stream/${song.id}`
-    audioRef.value.play()
-  }
+const onPlayClick = (song: any) => {
+  playerStore.handlePlayRequest(song)
 }
 
-const togglePlay = () => {
+const audioRef = ref<HTMLAudioElement | null>(null);
+
+watch(() => playerStore.isPlaying, (newisPlaying) => {
   if (!audioRef.value) return
-  if (isPlaying.value) {
+  if (newisPlaying) {
+    audioRef.value.play().catch(e => console.error("Playback failed:", e))
+  } else {
     audioRef.value.pause()
-  } else {
-    audioRef.value.play()
   }
-  isPlaying.value = !isPlaying.value
-}
+})
 
-const handlePlay = (song: any) => {
-  if (playerStore.currentSongId === song.id && playerStore.isPlaying) {
-    // 同じ曲なら一時停止
-    playerStore.pause();
-  } else {
-    // 別の曲、または停止中なら再生
-    playSong(song); // 前に実装した再生関数
+watch(() => playerStore.currentSongId, async () => {
+  await nextTick()
+  if (audioRef.value) {
+    audioRef.value.load()
+    if (playerStore.isPlaying) {
+      audioRef.value.play()
+    }
   }
-}
+})
 
 onMounted(async () => {
   try {
@@ -99,21 +87,18 @@ onMounted(async () => {
     </a>
   </div>
   <div v-else class="songs-container">
-    <SongCard v-for="song in songs" :title="song.name" :composer="userCache[song.uploaderId] || song.uploaderId.substring(0, 8)" :image_url="`/api/users/${song.uploaderId}/icon`" :is-playing="playerStore.isPlaying" @play="handlePlay(song)"/> 
+    <SongCard v-for="song in songs" :title="song.name" :composer="userCache[song.uploaderId] || song.uploaderId.substring(0, 8)" :image_url="`/api/users/${song.uploaderId}/icon`" :isPlaying="playerStore.currentSongId === song.id && playerStore.isPlaying" @play="onPlayClick(song)"/> 
     <p></p>
-    <div v-if="currentSong" class="player-bar">
+    <div v-if="playerStore.currentSong" class="player-bar">
       <div class="player-info">
-        <span class="now-playing">再生中: {{ currentSong.name.replace(/\.[^/.]+$/, "") }}</span>
-      </div>
-      
-      <div class="controls">
-        <button @click="togglePlay">{{ isPlaying ? 'PAUSE' : 'PLAY' }}</button>
+        <span class="now-playing">再生中: {{ playerStore.currentSong.name.replace(/\.[^/.]+$/, "") }}</span>
       </div>
 
       <audio 
         ref="audioRef" 
-        @play="isPlaying = true" 
-        @pause="isPlaying = false"
+        :src="`/api/stream/${playerStore.currentSongId}`"
+        @play="playerStore.isPlaying = true" 
+        @pause="playerStore.isPlaying = false"
         controls
       ></audio>
       </div>
