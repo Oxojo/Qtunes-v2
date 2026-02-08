@@ -10,8 +10,12 @@ const songs = ref<Song[]>([])
 const userCache = ref<Record<string, string>>({})
 const playerStore = usePlayerStore()
 
+const pendingRequests = new Set<string>();
+
 const resolveTraqId = async (uuid: string) => {
-  if (userCache.value[uuid]) return;
+  if (userCache.value[uuid] || pendingRequests.has(uuid)) return;
+
+  pendingRequests.add(uuid);
 
   try {
     const res = await fetch(`/api/users/${uuid}`);
@@ -20,8 +24,9 @@ const resolveTraqId = async (uuid: string) => {
       userCache.value[uuid] = data.name;
     }
   } catch (e) {
-    console.error("User fetch error:", e);
-    userCache.value[uuid] = "unknown";
+    console.error("Fetch error:", e);
+  } finally {
+    pendingRequests.delete(uuid);
   }
 }
 
@@ -117,7 +122,23 @@ onMounted(async () => {
 
 <style scoped>
 .songs-container {
-  max-width: 800px; margin: 0 auto; padding: 20px;
+  display: grid;
+  
+  grid-template-columns: repeat(2, 1fr);
+  
+  row-gap: 20px;
+
+  width: 100%;
+  max-width: 1000px; 
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* レスポンシブ対応（スマホで見るときに1列にしたい場合） */
+@media (max-width: 1000px) {
+  .songs-container {
+    grid-template-columns: 1fr;
+  }
 }
 
 </style>
