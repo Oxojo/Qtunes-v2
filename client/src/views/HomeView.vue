@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { usePlayerStore } from '../stores/player'
 import { Song } from '@scope/common'
 import SongCard from '../components/SongCard.vue';
+import FooterPlayer from '../components/FooterPlayer.vue';
 
 const user = ref(null)
 const songs = ref<Song[]>([])
@@ -46,59 +47,6 @@ const onPlayClick = (song: any) => {
   playerStore.handlePlayRequest(song)
 }
 
-const audioRef = ref<HTMLAudioElement | null>(null);
-
-const onLoadedMetadata = () => {
-  if (audioRef.value) {
-    playerStore.duration = audioRef.value.duration
-  }
-}
-
-const onTimeUpdate = () => {
-  if (audioRef.value) {
-    playerStore.currentTime = audioRef.value.currentTime
-  }
-}
-
-const onSeek = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  const time = parseFloat(target.value)
-  if (audioRef.value) {
-    audioRef.value.currentTime = time
-    playerStore.currentTime = time
-  }
-}
-
-const formatTime = (seconds: number) => {
-  const min = Math.floor(seconds / 60)
-  const sec = Math.floor(seconds % 60)
-  return `${min}:${sec.toString().padStart(2, '0')}`
-}
-
-watch(() => playerStore.isPlaying, (newisPlaying) => {
-  if (!audioRef.value) return
-  if (newisPlaying) {
-    audioRef.value.play().catch(e => console.error("Playback failed:", e))
-  } else {
-    audioRef.value.pause()
-  }
-})
-
-watch(() => playerStore.currentSongId, async () => {
-  await nextTick()
-  if (audioRef.value) {
-    audioRef.value.load()
-    if (playerStore.isPlaying) {
-      audioRef.value.play()
-    }
-  }
-})
-
-const onEnded = () => {
-  playerStore.isPlaying = false
-  playerStore.currentTime = 0
-}
-
 onMounted(async () => {
   try {
     const res = await fetch('api/me')
@@ -123,52 +71,7 @@ onMounted(async () => {
     <p></p>
   </div>
 
-  <div v-if="playerStore.currentSong" class="footer-player">
-    <div class="player-content">
-      <div class="player-left">
-        <div class="song-info">
-          <img :src="`/api/users/${playerStore.currentSong.uploaderId}/icon`" class="footer-icon">
-          <div class="footer-text">
-            <span class="footer-title">{{ playerStore.currentSong.name.replace(/\.[^/.]+$/, "") }}</span>
-            <span class="footer-composer">{{ userCache[playerStore.currentSong.uploaderId] }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="player-center">
-        <div class="seek-bar-container">
-          <span class="time">{{ formatTime(playerStore.currentTime) }}</span>
-          <input 
-            type="range"
-            class="seek-bar"
-            min="0"
-            :max="playerStore.duration"
-            step="0.1"
-            :value="playerStore.currentTime"
-            @input="onSeek"
-          >
-          <span class="time">{{ formatTime(playerStore.duration) }}</span>
-        </div>
-      </div>
-
-      <div class="player-right">
-        <div class="footer-controls">
-          <button class="control-btn" @click="playerStore.togglePlay()">
-            {{ playerStore.isPlaying ? '⏸' : '▶' }}
-          </button>
-        </div>
-      </div>
-    </div>
-  <audio 
-    ref="audioRef"
-    :src="`/api/stream/${playerStore.currentSongId}`"
-    @timeupdate="onTimeUpdate"
-    @loadedmetadata="onLoadedMetadata"
-    @ended="onEnded"
-    @play="playerStore.isPlaying = true" 
-    @pause="playerStore.isPlaying = false"
-  ></audio>
-  </div>
+    <FooterPlayer :composer-name="playerStore.currentSong ? userCache[playerStore.currentSong.uploaderId] : ''" />
 </template>
 
 <style scoped>
@@ -190,18 +93,6 @@ onMounted(async () => {
   .songs-container {
     grid-template-columns: 1fr;
   }
-}
-
-.footer-player {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 70px;
-  background: #3B3B3B;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
 }
 
 .player-content {
