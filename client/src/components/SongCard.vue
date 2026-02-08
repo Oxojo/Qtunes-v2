@@ -27,10 +27,10 @@ const emit = defineEmits(['play'])
 <style>
 .SongCard {
     position: relative;
-    width: 396px;  /* 必要に応じて最大幅を制限 */
-    height: 150px;     /* カードの高さ */
+    width: 396px;
+    height: 150px;
     border-radius: 10px;
-    overflow: hidden;  /* はみ出たイラストをカット */
+    overflow: hidden;
     border: 1px solid;
     background: white;
 }
@@ -83,7 +83,7 @@ const emit = defineEmits(['play'])
 }
 .play-button {
   position: absolute;
-  bottom: 16px; /* はみ出さないように余白を確保 */
+  bottom: 16px;
   right: 16px;
   width: 44px;
   height: 44px;

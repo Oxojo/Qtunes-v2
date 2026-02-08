@@ -88,7 +88,6 @@ onMounted(async () => {
   padding: 20px;
 }
 
-/* レスポンシブ対応（スマホで見るときに1列にしたい場合） */
 @media (max-width: 1000px) {
   .songs-container {
     grid-template-columns: 1fr;
