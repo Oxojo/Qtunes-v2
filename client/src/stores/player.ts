@@ -8,6 +8,14 @@ export const usePlayerStore = defineStore('player', () => {
 
   const currentSongId = computed(() => currentSong.value?.id || null)
 
+  const currentTime = ref(0)
+  const duration = ref(0)
+
+  const progressPercent = computed(() => {
+    if (duration.value === 0) return 0
+    return (currentTime.value / duration.value) * 100
+  })
+
   const handlePlayRequest = (song: any) => {
     if (currentSongId.value === song.id) {
       togglePlay()
@@ -32,8 +40,11 @@ export const usePlayerStore = defineStore('player', () => {
 
   return { 
     currentSong, 
-    isPlaying, 
-    currentSongId, 
+    isPlaying,
+    currentTime,
+    duration, 
+    currentSongId,
+    progressPercent, 
     handlePlayRequest, 
     playNewSong, 
     togglePlay, 
